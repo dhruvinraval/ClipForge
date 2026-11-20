@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClipForge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#150f21; --panel:#201833; --panel2:#2a2043; --line:#3d3059; --text:#f6f1ff; --mute:#a898c8;
+  --violet:#8b6cff; --yellow:#ffe14d; --red:#ff6b81; --ok:#4de0a4;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif; --body:'Instrument Sans','Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 var(--body);min-height:100vh}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px clamp(16px,3vw,40px);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:12px;font:800 26px/1 var(--display);letter-spacing:-.02em}
+.logo svg{width:34px;height:34px}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-size:13px;padding:4px 11px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--mute)}
+.pill.on{color:var(--text)} .pill.on::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--ok);margin-right:7px}
+.pill.bad{border-color:var(--red);color:var(--red)}
+main{display:grid;grid-template-columns:minmax(340px,440px) 1fr;gap:28px;padding:28px clamp(16px,3vw,40px);align-items:start}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+form#f{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px;display:grid;gap:20px}
+h2{font:700 20px/1.2 var(--display);margin:0;letter-spacing:-.01em}
+h3{font:600 14px/1.2 var(--body);margin:0 0 9px;color:var(--mute)}
+.seg{display:flex;background:var(--bg);border-radius:12px;padding:3px;gap:3px}
+.seg label{flex:1;text-align:center;cursor:pointer}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg span{display:block;padding:8px 6px;border-radius:9px;color:var(--mute);font-weight:500;transition:background .15s,color .15s}
+.seg input:checked+span{background:var(--violet);color:#fff}
+.seg input:focus-visible+span{outline:2px solid var(--yellow)}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--mute);cursor:pointer;transition:border-color .15s,background .15s}
+.drop.over,.drop:hover{border-color:var(--violet);background:rgba(139,108,255,.08)}
+.drop b{color:var(--text);display:block;font:600 16px var(--display);margin-bottom:2px;overflow-wrap:anywhere}
+.or{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:13px;margin:12px 0 10px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.hint{font-size:13px;color:var(--mute);min-height:1.3em;margin-top:7px} .hint b{color:var(--yellow);font-weight:600}
+input[type=text],input[type=url],input[type=number],select,textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+select{cursor:pointer} select:disabled{opacity:.5}
+option:disabled{color:#776a93}
+input[type=color]{width:100%;height:38px;padding:2px;background:var(--bg);border:1px solid var(--line);border-radius:10px;cursor:pointer}
+input[type=range]{width:100%;accent-color:var(--violet)}
+textarea{min-height:86px;resize:vertical}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px} .row.two{grid-template-columns:1fr 1fr}
+.row label,.fld{font-size:13px;color:var(--mute);display:grid;gap:5px;align-content:start}
+.styles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.styles label{cursor:pointer;text-align:center;font-size:13px;color:var(--mute);min-width:0}
+.styles input{position:absolute;opacity:0;pointer-events:none}
+.prev{height:62px;border-radius:12px;background:linear-gradient(160deg,#3a2c5e,#1b1330);display:grid;place-items:center;border:2px solid transparent;margin-bottom:5px;transition:border-color .15s;overflow:hidden;font-size:13px;text-align:center;line-height:1.2}
+.styles input:checked+.prev{border-color:var(--yellow)} .styles input:checked~span{color:var(--text)}
+.styles span.nm{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toggles{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.sw{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px}
+.sw input{appearance:none;width:38px;height:22px;border-radius:99px;background:var(--line);position:relative;cursor:pointer;transition:background .15s;flex:none}
+.sw input::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s}
+.sw input:checked{background:var(--violet)} .sw input:checked::after{transform:translateX(16px)}
+.sw input:disabled{opacity:.4;cursor:not-allowed}
+.sw small{display:block;color:var(--mute);font-size:12px;line-height:1.3}
+details{border-top:1px solid var(--line);padding-top:14px}
+details summary{cursor:pointer;color:var(--text);font-weight:600} details[open] summary{margin-bottom:14px}
+details>div.stack{display:grid;gap:14px}
+.go{background:var(--yellow);color:#1a1230;border:0;border-radius:14px;padding:14px;font:800 17px var(--display);cursor:pointer;transition:transform .12s,filter .12s}
+.go:hover{filter:brightness(1.06);transform:translateY(-1px)} .go:disabled{opacity:.6;cursor:wait;transform:none}
+.err{color:var(--red);font-size:14px;min-height:1em}
+.designer{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:12px;margin-top:12px}
+.phone{height:120px;border-radius:12px;background:linear-gradient(160deg,#4a3a78,#1b1330);display:grid;place-items:center;overflow:hidden;padding:0 10px;text-align:center;font-size:22px;line-height:1.2}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 14px;cursor:pointer;font-size:14px;text-decoration:none;display:inline-block;color:var(--text)}
+.btn:hover{border-color:var(--violet)} .btn.danger:hover{border-color:var(--red);color:var(--red)} .btn.primary{background:var(--violet);border-color:var(--violet);color:#fff} .btn:disabled{opacity:.5;cursor:wait}
+.btn.sm{padding:4px 10px;font-size:13px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px}
+.chip{flex:none;max-width:240px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 14px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip.sel{border-color:var(--violet);background:var(--panel2)}
+.chip i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px;background:var(--mute)}
+.chip.paused i{background:var(--yellow)} .chip.done i{background:var(--ok)} .chip.running i{background:var(--yellow);animation:pulse 1.2s infinite} .chip.error i,.chip.cancelled i{background:var(--red)}
+@keyframes pulse{50%{opacity:.3}} @media(prefers-reduced-motion:reduce){.chip.running i{animation:none}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px}
+.empty{border:2px dashed var(--line);border-radius:20px;padding:56px 24px;text-align:center;color:var(--mute)}
+.empty h2{color:var(--text);margin-bottom:8px}
+.head{display:flex;justify-content:space-between;gap:12px;align-items:start;flex-wrap:wrap}
+.head h2{overflow-wrap:anywhere;max-width:60ch}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.bar{height:10px;background:var(--bg);border-radius:99px;overflow:hidden;margin:16px 0 8px}
+.bar>div.paused{background:var(--mute)}
+.bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--yellow));border-radius:99px;transition:width .4s}
+.stage{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--mute);font-size:14px}
+.tl{position:relative;height:34px;margin-top:18px;background:var(--bg);border-radius:8px;border:1px solid var(--line)}
+.tl span{position:absolute;top:3px;bottom:3px;min-width:6px;background:var(--violet);border-radius:5px;font-size:11px;display:grid;place-items:center;font-weight:600;overflow:hidden}
+.tl-cap{font-size:12px;color:var(--mute);margin-top:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;margin-top:22px}
+.clip{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.vid{position:relative;background:#000;display:grid;place-items:center}
+.vid video{width:100%;max-height:420px;display:block;object-fit:contain}
+.score{position:absolute;top:8px;left:8px;background:var(--yellow);color:#1a1230;font:800 14px var(--display);padding:2px 9px;border-radius:8px}
+.clip .info{padding:12px 14px 14px;display:grid;gap:8px;flex:1;align-content:start}
+.clip h4{margin:0;font:700 15px/1.3 var(--display)} .meta{font-size:13px;color:var(--mute)}
+.sum{font-size:13px;color:var(--text);opacity:.85}
+.tags{display:flex;gap:5px;flex-wrap:wrap} .tag{font-size:12px;color:var(--yellow);background:rgba(255,225,77,.1);border-radius:6px;padding:1px 7px}
+.clip .btns{margin-top:4px}
+.busy{position:absolute;inset:0;background:rgba(21,15,33,.82);display:grid;place-items:center;text-align:center;font-weight:600;z-index:2}
+.cerr{font-size:13px;color:var(--red)}
+.log{margin-top:18px;font:12px/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--mute);max-height:180px;overflow:auto;white-space:pre-wrap;background:var(--bg);padding:10px;border-radius:10px}
+.errbox{margin-top:14px;padding:12px 14px;border:1px solid var(--red);border-radius:12px;color:var(--red)}
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:20px;padding:22px;width:min(560px,94vw);max-height:92vh;overflow:auto}
+dialog::backdrop{background:rgba(8,5,15,.7)}
+dialog .stack{display:grid;gap:14px}
+.edhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.tr{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;font-size:13px;color:var(--mute)}
+.tr b{color:var(--text)}
+#edVid{width:100%;max-height:300px;background:#000;border-radius:12px}
+#cvOut img{width:100%;max-height:340px;object-fit:contain;border-radius:12px;background:#000}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#8b6cff"/><path d="M13 10l17 10-17 10z" fill="#ffe14d"/><path d="M9 33h22" stroke="#150f21" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 4"/></svg>
+    ClipForge
+  </div>
+  <div class="pills" id="pills"></div>
+</header>
+
+<main>
+<form id="f" autocomplete="off">
+  <h2>New clip job</h2>
+
+  <div>
+    <h3>Video</h3>
+    <div class="drop" id="drop" tabindex="0"><b id="dropT">Drop a video here</b><span id="dropS">or click to browse (mp4, mov, mkv, webm)</span></div>
+    <input type="file" name="file" id="file" accept="video/*,.mkv" hidden>
+    <div class="or"><span>or paste a link or a file path</span></div>
+    <input type="text" name="source" id="source" spellcheck="false" placeholder="https://youtube.com/watch?v=…   or   C:\Videos\movie.mp4">
+    <div class="hint" id="srcHint" aria-live="polite"></div>
+  </div>
+
+  <div>
+    <h3>Format</h3>
+    <select id="platform" style="margin-bottom:8px" aria-label="Platform preset">
+      <option value="">Platform preset: custom</option>
+      {% for k, p in platforms.items() %}<option value="{{ k }}">{{ p.label }}</option>{% endfor %}
+    </select>
+    <div class="seg" style="margin-bottom:8px">
+      <label><input type="radio" name="aspect" value="9:16" checked><span>9:16</span></label>
+      <label><input type="radio" name="aspect" value="4:5"><span>4:5</span></label>
+      <label><input type="radio" name="aspect" value="1:1"><span>1:1</span></label>
+      <label><input type="radio" name="aspect" value="16:9"><span>16:9</span></label>
+    </div>
+    <div class="seg">
+      <label><input type="radio" name="layout" value="smart" checked><span>Follow the speaker</span></label>
+      <label><input type="radio" name="layout" value="blur"><span>Blurred background</span></label>
+    </div>
+  </div>
+
+  <div>
+    <h3>Caption style</h3>
+    <div class="styles" id="styleCards"></div>
+    <button type="button" class="btn sm" id="designBtn" style="margin-top:10px">Design your own</button>
+    <div class="designer" id="designer" hidden>
+      <div class="phone" id="phone"></div>
+      <div class="row two">
+        <label>Font<input type="text" id="d_font" list="fontlist" placeholder="Arial"></label>
+        <label>Size <span id="d_size_v"></span><input type="range" id="d_size" min="60" max="150"></label>
+      </div>
+      <datalist id="fontlist"><option>Arial</option><option>Impact</option><option>Verdana</option><option>Segoe UI</option><option>Comic Sans MS</option><option>Montserrat</option><option>Bebas Neue</option><option>Roboto</option></datalist>
+      <div class="row">
+        <label>Text<input type="color" id="d_primary"></label>
+        <label>Active word<input type="color" id="d_active"></label>
+        <label>Outline<input type="color" id="d_outline"></label>
+      </div>
+      <div class="row">
+        <label>Outline width <span id="d_outline_w_v"></span><input type="range" id="d_outline_w" min="0" max="16"></label>
+        <label>Words per line<input type="number" id="d_group" min="1" max="6"></label>
+        <label>Position<select id="d_position"><option value="bottom">Bottom</option><option value="middle">Middle</option><option value="top">Top</option></select></label>
+      </div>
+      <div class="toggles">
+        <label class="sw"><input type="checkbox" id="d_upper"> Uppercase</label>
+        <label class="sw"><input type="checkbox" id="d_highlight"> Highlight word</label>
+        <label class="sw"><input type="checkbox" id="d_box"> Box behind text</label>
+      </div>
+      <div class="row two" style="align-items:end">
+        <label>Save as preset<input type="text" id="d_name" placeholder="My style" maxlength="30"></label>
+        <div class="btns"><button type="button" class="btn sm primary" id="d_save">Save</button><button type="button" class="btn sm danger" id="d_del" hidden>Delete</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toggles">
+    <label class="sw"><input type="checkbox" name="captions" checked> Captions</label>
+    <label class="sw"><input type="checkbox" name="hook" checked> Title hook</label>
+    <label class="sw"><input type="checkbox" name="progress_bar" checked> Progress bar</label>
+    <label class="sw"><input type="checkbox" name="gpu" id="gpu" disabled> GPU encode</label>
+  </div>
+
+  <div class="row">
+    <label>Clips<input type="number" name="count" value="6" min="1" max="20"></label>
+    <label>Min seconds<input type="number" name="min_len" value="20" min="5" max="170"></label>
+    <label>Max seconds<input type="number" name="max_len" value="60" min="10" max="180"></label>
+  </div>
+
+  <details>
+    <summary>Smart picking and AI</summary>
+    <div class="stack">
+      <label class="fld">Audio track
+        <select name="audio_track" id="audioTrack"><option value="0">Track 1 (default)</option><option value="1">Track 2</option><option value="2">Track 3</option></select>
+        <span id="trackHint">Paste a file path above to see the track names.</span></label>
+      <div class="toggles">
+        <label class="sw"><input type="checkbox" name="dedupe" checked> <span>Skip duplicates<small>no repeat scenes</small></span></label>
+        <label class="sw"><input type="checkbox" name="motion"> <span>Action scoring<small>slower, finds scenes</small></span></label>
+        <label class="sw"><input type="checkbox" name="translate"> <span>English captions<small>translate speech</small></span></label>
+        <label class="sw"><input type="checkbox" name="speakers" id="spk"> <span>Speaker labels<small>experimental</small></span></label>
+      </div>
+      <div class="row two">
+        <label>AI helper (titles, ranking, hashtags)
+          <select name="ai" id="ai"><option value="off">Off</option><option value="ollama" id="o_ollama">Local model (Ollama)</option><option value="claude" id="o_claude">Claude (online)</option></select></label>
+        <label>Local model<select name="ai_model" id="aiModel" disabled><option value="">none found</option></select></label>
+      </div>
+      <div class="row two">
+        <label>Whisper model
+          <select name="whisper_model"><option>tiny</option><option>base</option><option selected>small</option><option>medium</option><option>large-v3</option></select></label>
+        <label>Language (blank = detect)<input type="text" name="language" placeholder="en"></label>
+      </div>
+      <label class="fld">Speakers in the video<select name="speaker_count"><option>2</option><option>3</option><option>4</option></select></label>
+      <label class="fld">Manual clip ranges, one per line. When filled in, auto-detect is skipped.
+        <textarea name="manual" placeholder="1:20-2:05 Why I quit&#10;14:00-14:48"></textarea></label>
+    </div>
+  </details>
+
+  <details>
+    <summary>Export</summary>
+    <div class="stack">
+      <div class="row two">
+        <label>Target file size in MB (0 = best quality)<input type="number" name="target_mb" id="target_mb" value="0" min="0" max="2000"></label>
+        <label class="sw" style="align-self:end;padding-bottom:9px"><input type="checkbox" name="export_subs"> <span>Save .srt .vtt .txt</span></label>
+      </div>
+      <div class="hint">Every job also writes clips.csv. GIF, MP3, cover images and a zip of everything are on each clip.</div>
+    </div>
+  </details>
+
+  <button class="go" id="go" type="submit">Forge clips</button>
+  <div class="err" id="err" role="alert"></div>
+</form>
+
+<section>
+  <div class="chips" id="chips"></div>
+  <div id="view"><div class="empty"><h2>No clips yet</h2><p>Add a video on the left. ClipForge transcribes it, picks the strongest moments and renders them ready to post.</p></div></div>
+</section>
+</main>
+
+<dialog id="ed">
+  <div class="edhead"><h2 id="edH">Edit clip</h2><button type="button" class="btn sm" id="edClose">Close</button></div>
+  <div class="seg" style="margin-bottom:14px">
+    <label><input type="radio" name="edtab" value="trim" checked><span>Trim and style</span></label>
+    <label><input type="radio" name="edtab" value="cover"><span>Cover</span></label>
+  </div>
+  <div class="stack" id="tab-trim">
+    <label class="fld">Title (also the on-screen hook)<input type="text" id="edTitle" maxlength="80"></label>
+    <div class="tr">
+      <span>Start <b id="stV"></b></span><span class="btns"><button type="button" class="btn sm" data-nudge="start:-0.5">-0.5s</button><button type="button" class="btn sm" data-nudge="start:0.5">+0.5s</button></span>
+      <input type="range" id="edStart" step="0.1" style="grid-column:1/-1">
+      <span>End <b id="enV"></b></span><span class="btns"><button type="button" class="btn sm" data-nudge="end:-0.5">-0.5s</button><button type="button" class="btn sm" data-nudge="end:0.5">+0.5s</button></span>
+      <input type="range" id="edEnd" step="0.1" style="grid-column:1/-1">
+      <span id="edLen" style="grid-column:1/-1"></span>
+    </div>
+    <div class="row">
+      <label>Format<select id="edAspect"><option>9:16</option><option>4:5</option><option>1:1</option><option>16:9</option></select></label>
+      <label>Layout<select id="edLayout"><option value="smart">Follow speaker</option><option value="blur">Blurred bg</option></select></label>
+      <label>Caption style<select id="edStyle"></select></label>
+    </div>
+    <div class="toggles">
+      <label class="sw"><input type="checkbox" id="edCaptions"> Captions</label>
+      <label class="sw"><input type="checkbox" id="edHook"> Title hook</label>
+      <label class="sw"><input type="checkbox" id="edBar"> Progress bar</label>
+    </div>
+    <button type="button" class="go" id="edGo">Re-render this clip</button>
+  </div>
+  <div class="stack" id="tab-cover" hidden>
+    <video id="edVid" controls muted playsinline></video>
+    <label class="fld">Frame <span id="cvTV"></span><input type="range" id="cvT" step="0.1" min="0"></label>
+    <div class="row two">
+      <label>Cover text<input type="text" id="cvText" maxlength="120" placeholder="Leave blank for no text"></label>
+      <label>Text position<select id="cvPos"><option value="middle">Middle</option><option value="top">Top</option><option value="bottom">Bottom</option></select></label>
+    </div>
+    <button type="button" class="btn primary" id="cvGo">Create cover image</button>
+    <div id="cvOut"></div>
+  </div>
+</dialog>
+
+<script>
+const PLATFORMS = {{ platforms|tojson }};
+const $ = s => document.querySelector(s);
+let cur = null, timer = null, cards = {}, lastJob = null, health = {};
+const fmt = s => { s = Math.round(s); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
+  return (h ? h+':'+String(m).padStart(2,'0') : m) + ':' + String(x).padStart(2,'0'); };
+const fmtT = s => { const m = Math.floor(s/60), x = (s%60).toFixed(1); return m + ':' + (x < 10 ? '0' : '') + x; };
+const dur = s => s < 60 ? Math.max(1, Math.round(s)) + ' sec' : s < 3600 ? Math.ceil(s/60) + ' min' : Math.floor(s/3600) + ' h ' + Math.ceil(s%3600/60) + ' min';
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const post = (url, body) => fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body || {})});
+
+/* ---------- health pills, AI options ---------- */
+fetch('/api/health').then(r => r.json()).then(h => {
+  health = h;
+  $('#pills').innerHTML =
+    `<span class="pill ${h.ffmpeg ? 'on' : 'bad'}">ffmpeg ${h.ffmpeg ? 'ready' : 'missing'}</span>` +
+    `<span class="pill ${h.nvenc ? 'on' : ''}">GPU encode ${h.nvenc ? 'available' : 'unavailable'}</span>` +
+    `<span class="pill ${h.ollama.length ? 'on' : ''}">Local AI ${h.ollama.length ? h.ollama.length + ' model(s)' : 'off'}</span>` +
+    `<span class="pill ${h.claude ? 'on' : ''}">Claude ${h.claude ? 'connected' : 'off'}</span>`;
+  if (h.nvenc) $('#gpu').disabled = false;
+  $('#o_ollama').disabled = !h.ollama.length; if (!h.ollama.length) $('#o_ollama').textContent = 'Local model (Ollama not running)';
+  $('#o_claude').disabled = !h.claude; if (!h.claude) $('#o_claude').textContent = 'Claude (set ANTHROPIC_API_KEY)';
+  if (h.ollama.length) $('#aiModel').innerHTML = h.ollama.map(m => `<option>${esc(m)}</option>`).join('');
+});
+$('#ai').onchange = () => { $('#aiModel').disabled = $('#ai').value !== 'ollama'; };
+
+/* ---------- one video input: file, link or path ---------- */
+const drop = $('#drop'), file = $('#file'), src = $('#source');
+const DROP_T = 'Drop a video here', DROP_S = 'or click to browse (mp4, mov, mkv, webm)';
+const kind = v => { v = v.trim().replace(/^["']|["']$/g, ''); return !v ? '' : /^(https?:\/\/|www\.)/i.test(v) ? 'link' : 'path'; };
+function hint() {
+  const f = file.files[0]; let h = '';
+  if (f) h = `<b>File upload</b> · ${(f.size/1048576).toFixed(0)} MB` + (f.size > 5e8 ? ' · big file: pasting its path below is faster than uploading' : '');
+  else { const k = kind(src.value);
+    h = k === 'link' ? '<b>Link detected</b> · it will be downloaded first' :
+        k === 'path' ? '<b>File path</b> · read straight from this computer, nothing is copied' : ''; }
+  $('#srcHint').innerHTML = h;
+}
+function setTracks(tracks) {
+  const sel = $('#audioTrack'), keep = sel.value;
+  sel.innerHTML = (tracks.length ? tracks : [{index:0,label:'Track 1 (default)'},{index:1,label:'Track 2'},{index:2,label:'Track 3'}])
+    .map(t => `<option value="${t.index}">${esc(t.label)}</option>`).join('');
+  if ([...sel.options].some(o => o.value === keep)) sel.value = keep;
+  $('#trackHint').textContent = tracks.length ? `${tracks.length} audio track(s) found in this file.` : 'Paste a file path above to see the track names.';
+}
+let probeT = null;
+function probePath() {
+  clearTimeout(probeT);
+  if (kind(src.value) !== 'path') { setTracks([]); return; }
+  probeT = setTimeout(async () => {
+    try { const r = await (await fetch('/api/probe?path=' + encodeURIComponent(src.value))).json(); setTracks(r.tracks); } catch (e) {}
+  }, 500);
+}
+function setFile(f) { if (f) { $('#dropT').textContent = f.name; $('#dropS').textContent = 'ready to upload'; src.value = ''; setTracks([]); } hint(); }
+drop.onclick = () => file.click();
+drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); file.click(); } };
+file.onchange = () => setFile(file.files[0]);
+src.addEventListener('input', () => {
+  if (src.value && file.files.length) { file.value = ''; $('#dropT').textContent = DROP_T; $('#dropS').textContent = DROP_S; }
+  hint(); probePath();
+});
+['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { file.files = e.dataTransfer.files; setFile(file.files[0]); });
+
+/* ---------- platform presets ---------- */
+$('#platform').onchange = e => {
+  const p = PLATFORMS[e.target.value]; if (!p) return;
+  document.querySelector(`input[name=aspect][value="${p.aspect}"]`).checked = true;
+  $('[name=min_len]').value = p.min_len; $('[name=max_len]').value = p.max_len; $('#target_mb').value = p.target_mb;
+};
+
+/* ---------- caption styles and designer ---------- */
+let styles = [], selId = 'hormozi', work = null;
+const prevCss = (p, sz) => `font-family:'${p.font}',Arial,sans-serif;font-weight:800;font-size:${sz}px;color:#${p.primary};` +
+  (p.box ? 'background:rgba(0,0,0,.62);padding:2px 7px;border-radius:5px;' :
+   (p.outline_w ? `-webkit-text-stroke:${Math.max(1, p.outline_w/4)}px #${p.outline};paint-order:stroke fill;` : '')) +
+  (p.shadow && !p.box ? `text-shadow:0 ${p.shadow/2}px ${p.shadow}px rgba(0,0,0,.6);` : '');
+const prevHtml = (p, sz, a, b) => { const t = s => p.upper ? s.toUpperCase() : s;
+  return `<span style="${prevCss(p, sz)}">${esc(t(a))} ${p.highlight ? `<i style="font-style:normal;color:#${p.active}">${esc(t(b))}</i>` : esc(t(b))}</span>`; };
+async function loadStyles(selectId) {
+  styles = await (await fetch('/api/styles')).json();
+  if (selectId) selId = selectId;
+  if (!styles.some(s => s.id === selId)) selId = styles[0].id;
+  $('#styleCards').innerHTML = styles.map(s =>
+    `<label><input type="radio" name="cs" value="${esc(s.id)}" ${s.id === selId ? 'checked' : ''}><div class="prev">${prevHtml(s.params, Math.round(13 * s.params.size / 100), 'this is', 'wild')}</div><span class="nm">${esc(s.label)}</span></label>`).join('');
+  document.querySelectorAll('input[name=cs]').forEach(r => r.onchange = () => chooseStyle(r.value));
+  chooseStyle(selId);
+  $('#edStyle').innerHTML = '<option value="">Keep current</option>' + styles.map(s => `<option value="${esc(s.id)}">${esc(s.label)}</option>`).join('');
+}
+function chooseStyle(id) {
+  selId = id; work = clone(styles.find(s => s.id === id).params);
+  setControls(); $('#d_del').hidden = styles.find(s => s.id === id).builtin;
+}
+const D = {font:'#d_font', size:'#d_size', primary:'#d_primary', active:'#d_active', outline:'#d_outline',
+           outline_w:'#d_outline_w', group:'#d_group', position:'#d_position', upper:'#d_upper', highlight:'#d_highlight', box:'#d_box'};
+function setControls() {
+  for (const [k, sel] of Object.entries(D)) { const el = $(sel);
+    if (el.type === 'checkbox') el.checked = !!work[k];
+    else if (el.type === 'color') el.value = '#' + work[k].toLowerCase();
+    else el.value = work[k]; }
+  $('#d_name').value = ''; updatePreview();
+}
+function readControls() {
+  for (const [k, sel] of Object.entries(D)) { const el = $(sel);
+    work[k] = el.type === 'checkbox' ? el.checked : el.type === 'color' ? el.value.slice(1).toUpperCase() :
+              ['size','outline_w','group'].includes(k) ? Number(el.value) : el.value; }
+  updatePreview();
+}
+function updatePreview() {
+  $('#d_size_v').textContent = work.size + '%'; $('#d_outline_w_v').textContent = work.outline_w;
+  $('#phone').innerHTML = prevHtml(work, Math.round(22 * work.size / 100), 'this is', 'wild');
+}
+Object.values(D).forEach(sel => $(sel).addEventListener('input', readControls));
+$('#designBtn').onclick = () => { $('#designer').hidden = !$('#designer').hidden; };
+$('#d_save').onclick = async () => {
+  const label = $('#d_name').value.trim(); if (!label) { $('#d_name').focus(); return; }
+  const r = await (await post('/api/styles', {label, params: work})).json(); await loadStyles(r.id);
+};
+$('#d_del').onclick = async () => { await fetch('/api/styles/' + selId, {method:'DELETE'}); await loadStyles('hormozi'); };
+loadStyles();
+
+/* ---------- submit ---------- */
+$('#f').addEventListener('submit', async e => {
+  e.preventDefault(); $('#err').textContent = '';
+  const fd = new FormData(e.target), hasFile = file.files.length > 0;
+  if (!hasFile) fd.delete('file');
+  fd.delete('cs'); fd.set('style_json', JSON.stringify(work));
+  if ($('#ai').value !== 'ollama') fd.delete('ai_model');
+  $('#go').disabled = true; $('#go').textContent = hasFile ? 'Uploading…' : 'Starting…';
+  try {
+    const r = await fetch('/api/jobs', { method: 'POST', body: fd }), j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'Could not start the job');
+    select(j.id); loadJobs();
+  } catch (x) { $('#err').textContent = x.message; }
+  $('#go').disabled = false; $('#go').textContent = 'Forge clips';
+});
+
+/* ---------- jobs ---------- */
+async function loadJobs() {
+  const rows = await (await fetch('/api/jobs')).json();
+  $('#chips').innerHTML = rows.map(j =>
+    `<div class="chip ${j.status} ${j.id === cur ? 'sel' : ''}" data-id="${j.id}" tabindex="0"><i></i>${esc(j.title)}</div>`).join('');
+  document.querySelectorAll('.chip').forEach(c => { c.onclick = () => select(c.dataset.id);
+    c.onkeydown = e => { if (e.key === 'Enter') select(c.dataset.id); }; });
+  if (!cur && rows.length) select(rows[0].id);
+}
+function ensurePoll() { if (!timer) timer = setInterval(poll, 1000); }
+function stopPoll() { clearInterval(timer); timer = null; }
+function select(id) { cur = id; cards = {}; $('#view').innerHTML = ''; stopPoll(); poll(); ensurePoll();
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('sel', c.dataset.id === id)); }
+async function poll() {
+  if (!cur) return;
+  const r = await fetch('/api/jobs/' + cur); if (!r.ok) { cur = null; stopPoll(); loadJobs(); return; }
+  render(await r.json());
+}
+const active = j => ['queued', 'running', 'paused'].includes(j.status);
+
+function cardHtml(j, c) {
+  const u = `/media/${j.id}/${encodeURIComponent(c.file)}`, v = `?v=${c.rev || 1}`;
+  return `<div class="vid"><video src="${u}${v}" poster="/media/${j.id}/${encodeURIComponent(c.thumb)}${v}" controls preload="none" playsinline loop></video>
+    ${c.score ? `<span class="score" title="Highlight score">${Math.round(c.score)}</span>` : ''}</div>
+    <div class="info"><h4>${esc(c.title)}</h4>
+    ${c.summary ? `<div class="sum">${esc(c.summary)}</div>` : ''}
+    <div class="tags">${(c.hashtags || []).map(h => `<span class="tag">${esc(h)}</span>`).join('')}</div>
+    <div class="meta">${fmt(c.start)} to ${fmt(c.end)} (${Math.round(c.duration)}s)${c.size_mb ? ' · ' + c.size_mb + ' MB' : ''}</div>
+    ${c.error ? `<div class="cerr">${esc(c.error)}</div>` : ''}
+    <div class="btns"><a class="btn primary sm" href="${u}?dl=1">Download</a>
+      <button class="btn sm" data-act="edit" data-n="${c.index}">Edit</button>
+      <button class="btn sm" data-act="gif" data-n="${c.index}">GIF</button>
+      <button class="btn sm" data-act="mp3" data-n="${c.index}">MP3</button>
+      <button class="btn sm" data-act="copy" data-n="${c.index}">Copy caption</button></div></div>
+    ${c.busy ? '<div class="busy">Re-rendering…</div>' : ''}`;
+}
+
+function render(j) {
+  lastJob = j;
+  let v = $('#view');
+  if (!v.firstChild) {
+    v.innerHTML = `<div class="card"><div class="head"><h2 id="t"></h2><div class="btns" id="b"></div></div>
+      <div class="bar"><div id="p"></div></div><div class="stage"><span id="st"></span><span id="pc"></span></div>
+      <div id="tlw"></div><div id="eb"></div></div><div class="grid" id="g"></div>
+      <details class="card" style="margin-top:20px"><summary>Activity log</summary><div class="log" id="lg"></div></details>`;
+    $('#g').onclick = onCardClick;
+  }
+  $('#t').textContent = j.title;
+  const pz = j.status === 'running' ? `<button class="btn" id="pz">Pause</button>` :
+             j.status === 'paused' ? `<button class="btn primary" id="pz">Resume</button>` : '';
+  const bh = active(j) ? pz + `<button class="btn danger" id="cx">Cancel</button>` :
+    (j.clips.length ? `<a class="btn primary" href="/api/jobs/${j.id}/zip">Download all (.zip)</a>` : '') +
+    `<button class="btn" id="op">Open folder</button><button class="btn danger" id="rm">Delete</button>`;
+  if ($('#b').dataset.h !== bh) {            // only rebuild when something changed, so clicks are never lost
+    $('#b').dataset.h = bh; $('#b').innerHTML = bh;
+    if ($('#pz')) $('#pz').onclick = () => post(`/api/jobs/${j.id}/${j.status === 'paused' ? 'resume' : 'pause'}`).then(poll);
+    if ($('#cx')) $('#cx').onclick = () => post(`/api/jobs/${j.id}/cancel`);
+    if ($('#op')) $('#op').onclick = () => post(`/api/jobs/${j.id}/open`);
+    if ($('#rm')) $('#rm').onclick = async () => { if (confirm('Delete this job and all its clips?')) {
+      await fetch('/api/jobs/' + j.id, {method:'DELETE'}); cur = null; stopPoll(); $('#view').innerHTML = ''; loadJobs(); } };
+  }
+  $('#p').classList.toggle('paused', j.status === 'paused');
+  $('#p').style.width = Math.round(j.progress * 100) + '%';
+  $('#st').textContent = j.status === 'paused' ? 'Paused' : j.stage;
+  const now = Date.now()/1000, pausedNow = j.status === 'paused' && j.paused_at ? now - j.paused_at : 0;
+  const el = j.started ? (j.finished || now) - j.started - (j.paused_total || 0) - pausedNow : 0;
+  let eta = '';
+  if (j.status === 'paused') eta = ' · paused';
+  else if (active(j) && j.eta != null) eta = j.eta_scope === 'total' ? ` · about ${dur(j.eta)} left` : ` · this step: about ${dur(j.eta)} left`;
+  else if (active(j) && j.status === 'running') eta = ' · estimating time left…';
+  $('#pc').textContent = Math.round(j.progress * 100) + '%' + (el > 1 ? ` · ${fmt(el)} elapsed` : '') + eta;
+  $('#eb').innerHTML = j.error ? `<div class="errbox">${esc(j.error)}</div>` : '';
+  const lg = $('#lg'); const txt = j.log.join('\n'); if (lg.textContent !== txt) { lg.textContent = txt; lg.scrollTop = lg.scrollHeight; }
+  if (j.duration && j.ranges.length) {
+    $('#tlw').innerHTML = `<div class="tl" aria-hidden="true">` + j.ranges.map((r, i) =>
+      `<span style="left:${r[0]/j.duration*100}%;width:${(r[1]-r[0])/j.duration*100}%">${i+1}</span>`).join('') +
+      `</div><div class="tl-cap">Where the clips come from, across ${fmt(j.duration)} of source</div>`;
+  }
+  const g = $('#g');
+  j.clips.forEach(c => {
+    const sig = [c.rev, c.busy, c.error, c.title, c.summary, (c.hashtags || []).join()].join('|');
+    let el = cards[c.file];
+    if (!el) { el = cards[c.file] = document.createElement('article'); el.className = 'clip'; g.appendChild(el); }
+    if (el.dataset.sig !== sig) { el.dataset.sig = sig; el.innerHTML = cardHtml(j, c); }
+  });
+  if (!active(j) && !j.clips.some(c => c.busy)) { stopPoll(); loadJobs(); }
+}
+
+async function onCardClick(e) {
+  const b = e.target.closest('[data-act]'); if (!b || !lastJob) return;
+  const c = lastJob.clips.find(x => x.index === Number(b.dataset.n)); if (!c) return;
+  if (b.dataset.act === 'edit') return openEditor(c);
+  if (b.dataset.act === 'copy') {
+    navigator.clipboard.writeText([c.title, c.summary, (c.hashtags || []).join(' ')].filter(Boolean).join('\n'));
+    b.textContent = 'Copied'; setTimeout(() => b.textContent = 'Copy caption', 1200); return;
+  }
+  const label = b.textContent; b.disabled = true; b.textContent = '…';
+  try {
+    const r = await post(`/api/jobs/${lastJob.id}/clips/${c.index}/export`, {fmt: b.dataset.act}), j = await r.json();
+    if (!r.ok) throw new Error(j.error); window.location = j.url;
+  } catch (x) { alert('Export failed: ' + x.message); }
+  b.disabled = false; b.textContent = label;
+}
+
+/* ---------- clip editor: trim, restyle, cover ---------- */
+const ed = $('#ed'); let edClip = null;
+document.querySelectorAll('input[name=edtab]').forEach(r => r.onchange = () => {
+  $('#tab-trim').hidden = r.value !== 'trim' || !r.checked; $('#tab-cover').hidden = r.value !== 'cover' || !r.checked;
+  if (r.checked && r.value === 'cover') $('#edVid').currentTime = Number($('#cvT').value); });
+function syncTrim() {
+  const s = Number($('#edStart').value), e = Number($('#edEnd').value);
+  $('#stV').textContent = fmtT(s); $('#enV').textContent = fmtT(e);
+  $('#edLen').textContent = `Length ${(e - s).toFixed(1)}s` + (e - s < 1 ? ' (must be at least 1s)' : '');
+}
+function openEditor(c) {
+  edClip = c; const j = lastJob, o = j.opts;
+  const lo = Math.max(0, c.start - 30), hi = Math.min(j.duration || c.end + 30, c.end + 30);
+  for (const id of ['#edStart', '#edEnd']) { $(id).min = lo; $(id).max = hi; }
+  $('#edStart').value = c.start; $('#edEnd').value = c.end; syncTrim();
+  $('#edH').textContent = 'Edit clip ' + c.index; $('#edTitle').value = c.title;
+  $('#edAspect').value = o.aspect; $('#edLayout').value = o.layout; $('#edStyle').value = '';
+  $('#edCaptions').checked = o.captions; $('#edHook').checked = o.hook; $('#edBar').checked = o.progress_bar;
+  const vid = $('#edVid'); vid.src = `/media/${j.id}/${encodeURIComponent(c.file)}?v=${c.rev || 1}`;
+  $('#cvT').max = c.duration; $('#cvT').value = Math.min(1, c.duration); $('#cvTV').textContent = fmtT(Number($('#cvT').value));
+  $('#cvOut').innerHTML = ''; $('#cvText').value = c.title;
+  document.querySelector('input[name=edtab][value=trim]').checked = true; $('#tab-trim').hidden = false; $('#tab-cover').hidden = true;
+  ed.showModal();
+}
+$('#edStart').oninput = () => { if (Number($('#edStart').value) > Number($('#edEnd').value) - 1) $('#edStart').value = Number($('#edEnd').value) - 1; syncTrim(); };
+$('#edEnd').oninput = () => { if (Number($('#edEnd').value) < Number($('#edStart').value) + 1) $('#edEnd').value = Number($('#edStart').value) + 1; syncTrim(); };
+ed.querySelectorAll('[data-nudge]').forEach(b => b.onclick = () => {
+  const [k, d] = b.dataset.nudge.split(':'), el = $(k === 'start' ? '#edStart' : '#edEnd');
+  el.value = Math.min(Number(el.max), Math.max(Number(el.min), Number(el.value) + Number(d))); el.oninput(); });
+$('#edClose').onclick = () => { $('#edVid').pause(); ed.close(); };
+$('#cvT').oninput = () => { $('#cvTV').textContent = fmtT(Number($('#cvT').value)); $('#edVid').currentTime = Number($('#cvT').value); };
+$('#edGo').onclick = async () => {
+  const body = {start: Number($('#edStart').value), end: Number($('#edEnd').value), title: $('#edTitle').value.trim(),
+    aspect: $('#edAspect').value, layout: $('#edLayout').value, captions: $('#edCaptions').checked,
+    hook: $('#edHook').checked, progress_bar: $('#edBar').checked};
+  if ($('#edStyle').value) body.style = styles.find(s => s.id === $('#edStyle').value).params;
+  const r = await post(`/api/jobs/${lastJob.id}/clips/${edClip.index}/rerender`, body);
+  if (!r.ok) { alert((await r.json()).error); return; }
+  ed.close(); poll(); ensurePoll();
+};
+$('#cvGo').onclick = async () => {
+  const b = $('#cvGo'); b.disabled = true; b.textContent = 'Creating…';
+  try {
+    const r = await post(`/api/jobs/${lastJob.id}/clips/${edClip.index}/cover`,
+      {t: Number($('#cvT').value), text: $('#cvText').value, position: $('#cvPos').value}), j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    $('#cvOut').innerHTML = `<img src="${j.url}" alt="Cover preview"><div class="btns" style="margin-top:8px"><a class="btn primary sm" href="${j.url}" download>Download cover</a></div>`;
+  } catch (x) { $('#cvOut').innerHTML = `<div class="cerr">${esc(x.message)}</div>`; }
+  b.disabled = false; b.textContent = 'Create cover image';
+};
+
+loadJobs(); setInterval(loadJobs, 5000);
+</script>
+</body>
+</html>

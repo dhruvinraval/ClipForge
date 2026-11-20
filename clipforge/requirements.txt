@@ -1,0 +1,7 @@
+flask>=3.0
+yt-dlp>=2024.8.6
+faster-whisper>=1.0.3
+opencv-python-headless>=4.9,<5
+numpy>=1.26
+anthropic>=0.40   # optional: AI re-ranking of highlights
+psutil>=5.9
